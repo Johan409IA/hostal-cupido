@@ -1,0 +1,14 @@
+dist
+src-tauri/target
+src-tauri/gen
+node_modules
+pnpm-lock.yaml
+Cargo.lock
+*.md
+.vscode
+index.html
+tsconfig.json
+tsconfig.node.json
+src/vite-env.d.ts
+src-tauri/tauri.conf.json
+src-tauri/capabilities
