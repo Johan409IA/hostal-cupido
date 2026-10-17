@@ -71,7 +71,7 @@ pnpm tauri dev   # app de escritorio completa (frontend + backend Rust)
 pnpm dev         # solo el frontend con recarga en caliente, sin backend
 ```
 
-La base de datos SQLite se creará automáticamente al primer arranque de la app (implementación planificada).
+La base de datos SQLite se crea automáticamente al primer arranque de la app (`app_data_dir`) y el esquema se aplica con migraciones versionadas (`schema_version`).
 
 ## Tests y calidad
 

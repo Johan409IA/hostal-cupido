@@ -6,11 +6,13 @@
 //! - `commands/`: comandos IPC finos que orquestan y devuelven `AppError`.
 //! - `error.rs`: error unificado serializable al frontend (`{code, message}`).
 //! - `state.rs` + `db.rs`: estado compartido con pool de conexiones SQLite.
+//! - `migrations.rs`: migraciones versionadas (`schema_version`) aplicadas al iniciar.
 
 pub mod commands;
 pub mod db;
 pub mod domain;
 pub mod error;
+pub mod migrations;
 pub mod repository;
 pub mod state;
 

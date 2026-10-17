@@ -229,7 +229,7 @@ mod pruebas {
     fn pool_en_memoria() -> DbPool {
         let manager = r2d2_sqlite::SqliteConnectionManager::memory();
         let pool = r2d2::Pool::builder().max_size(1).build(manager).unwrap();
-        crate::db::inicializar_esquema(&pool).unwrap();
+        crate::migrations::aplicar(&pool).unwrap();
         pool
     }
 

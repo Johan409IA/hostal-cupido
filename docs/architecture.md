@@ -9,7 +9,7 @@ Aplicación de escritorio (Tauri v2) con frontend React + TypeScript y backend e
 - **Dominio** (`src-tauri/src/domain/`): entidades, enums y reglas de negocio puras (Fase 1). Sin dependencias de `tauri`, `rusqlite` ni `r2d2`.
 - **Repositorios** (`src-tauri/src/repository/`): traits por entidad (ej. `HabitacionRepository`). En `repository/sqlite/` viven las implementaciones concretas — el único lugar del backend con SQL.
 - **Errores** (`src-tauri/src/error.rs`): `AppError` unificado; se serializa al frontend como `{ code, message }`.
-- **Estado y DB** (`src-tauri/src/state.rs`, `src-tauri/src/db.rs`): `AppState` con pool de conexiones r2d2 administrado por Tauri (`tauri::State`); SQLite con `journal_mode=WAL` y `foreign_keys=ON`.
+- **Estado y DB** (`src-tauri/src/state.rs`, `src-tauri/src/db.rs`, `src-tauri/src/migrations.rs`): `AppState` con pool de conexiones r2d2 administrado por Tauri (`tauri::State`); SQLite con `journal_mode=WAL` y `foreign_keys=ON`; migraciones versionadas (tabla `schema_version`) aplicadas al crear el pool.
 
 ## Diagrama
 
@@ -43,11 +43,11 @@ flowchart TD
 ## Restricciones y trade-offs conocidos
 
 - Los comandos son síncronos: ocupa el hilo IPC mientras dura la operación. Aceptable en una app bill-command; si aparecen operaciones largas, mover el repositorio a `tauri::async_runtime::spawn_blocking`.
-- Solo existe la tabla `habitaciones` (bootstrap con `CREATE TABLE IF NOT EXISTS`); el esquema completo y el sistema de migraciones llegan con la tarea de base de datos.
+- El esquema base completo vive en migraciones versionadas (`migrations.rs`): `schema_version` y v1..v7 (`habitaciones`, `clientes`, `estancias`, `transacciones`, `cola_limpieza`, `auditoria` e índices mínimos). Tablas futuras (p. ej. `administrador` y `configuracion`, Fase 2) entran como migraciones v8+.
 - Los estados tan enteros no validan transiciones aún: las reglas de dominio llegan en Fase 1 y residen, por diseño, en `domain/`.
 
 ## Puntos de extensión
 
 - **Nueva entidad**: 1) módulo en `domain/`, 2) trait en `repository/mod.rs`, 3) implementación en `repository/sqlite/`, 4) comandos en `commands/`, 5) registro en `invoke_handler`.
 - **Lógica de aplicación compleja**: si un comando necesita orquestar varias tablas (check-in), se evalúa una capa `services/` entre commands y repository, sin romper lo existente.
-- **Migraciones versionadas**: sustituyen al bootstrap de `db.rs` sin cambiar las capas.
+- **Nueva migración**: agregar a la constante `migrations::LISTA` la versión siguiente, con SQL idempotente (`IF NOT EXISTS`). `aplicar` ejecuta SQL + registro de versión en una transacción y falla si la base es más nueva que la app o si las versiones de la lista no son consecutivas.
