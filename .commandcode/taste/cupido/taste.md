@@ -16,6 +16,8 @@
 - Wants to understand the differences/trade-offs between available options and receive a clear recommendation on which works better before committing. Confidence: 0.8
 - Uses React + TypeScript + Vite for the frontend. Confidence: 0.8
 - Uses GitHub Actions for CI (build, tests, lint). Confidence: 0.8
+- Prefers the project and CI to use the same Node.js version as their local environment (Node 24), avoiding the deprecated Node 20. Confidence: 0.8
 - Prefers the agent to surface questions/doubts before proceeding when task requirements are ambiguous. Confidence: 0.8
 - Uses a `project-docs` skill/command to keep project documentation (AGENTS.md, MEMORY.md, README.md) current with the project's actual state. Confidence: 0.7
 - Prefers commit messages written in Spanish, as a single simple sentence, directly related to the task performed. Confidence: 0.8
+- Prefers a clean layered backend architecture in Rust: pure domain layer (no Tauri/SQLite deps), repository layer as the only place with SQL, thin IPC commands, and a unified serializable error type. Confidence: 0.7

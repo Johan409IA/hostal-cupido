@@ -16,8 +16,10 @@ Sistema de escritorio (Tauri v2) para administrar la operación diaria de un hos
 ## Convenciones
 - Identificadores en inglés; comentarios y textos de UI en español.
 - Imports ordenados (`import-x/order`), formato por Prettier, Tailwind en vez de CSS plano.
+- Backend por capas: `domain` sin deps de Tauri/SQLite, SQL solo en `repository/sqlite`, commands finos; referencia en `docs/architecture.md`.
 - Usar `ctx7` para docs de tecnologías, GitHub CLI (`gh`) para CI, y las skills de tauri para la plataforma.
 - Rol único en la app: administrador.
+- Usar el MCP de clickup para consultar las tareas y fases del proyecto.
 
 ## Reglas de dominio (trampas)
 - Estados de habitación solo: Disponible → Ocupada → Sucia → Disponible (ninguna otra transición).
