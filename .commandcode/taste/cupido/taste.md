@@ -1,0 +1,20 @@
+# Cupido
+- Communicates in Spanish and expects responses in Spanish. Confidence: 0.9
+- Prefers pnpm as the package manager. Confidence: 0.7
+- Uses Tauri v2 (Rust backend) for desktop applications. Confidence: 0.7
+- Development and target environment is Windows. Confidence: 0.7
+- Follows a phased development plan (PLAN.md) and verifies each phase's completion criteria before closing it. Confidence: 0.8
+- Uses GitHub CLI (gh) for repo checks and git for commits/push. Confidence: 0.7
+- Prefers least-privilege/minimal permissions in configuration. Confidence: 0.6
+- Uses Tailwind CSS for frontend styling, with design tokens (palette, typography) extracted from DESIGN.md. Confidence: 0.7
+- Uses ESLint (flat config) + Prettier for TypeScript/React, with sorted/grouped import ordering enforced. Confidence: 0.7
+- Enforces Rust code quality via rustfmt and clippy (no warnings). Confidence: 0.7
+- Prefers pnpm convenience scripts (lint, format, check) for a unified verification pipeline. Confidence: 0.6
+- Prefers MCP servers installed at project scope (via `.mcp.json`) rather than global. Confidence: 0.9
+- Prefers HTTP transport for MCP servers over stdio (e.g., mcp-remote) when available. Confidence: 0.8
+- Uses ClickUp for task/project management. Confidence: 0.8
+- Wants to understand the differences/trade-offs between available options and receive a clear recommendation on which works better before committing. Confidence: 0.8
+- Uses React + TypeScript + Vite for the frontend. Confidence: 0.8
+- Uses GitHub Actions for CI (build, tests, lint). Confidence: 0.8
+- Prefers the agent to surface questions/doubts before proceeding when task requirements are ambiguous. Confidence: 0.8
+- Uses a `project-docs` skill/command to keep project documentation (AGENTS.md, MEMORY.md, README.md) current with the project's actual state. Confidence: 0.7

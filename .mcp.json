@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "clickup": {
+      "transport": "http",
+      "enabled": true,
+      "url": "https://mcp.clickup.com/mcp"
+    }
+  }
+}
