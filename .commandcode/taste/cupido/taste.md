@@ -18,3 +18,4 @@
 - Uses GitHub Actions for CI (build, tests, lint). Confidence: 0.8
 - Prefers the agent to surface questions/doubts before proceeding when task requirements are ambiguous. Confidence: 0.8
 - Uses a `project-docs` skill/command to keep project documentation (AGENTS.md, MEMORY.md, README.md) current with the project's actual state. Confidence: 0.7
+- Prefers commit messages written in Spanish, as a single simple sentence, directly related to the task performed. Confidence: 0.8

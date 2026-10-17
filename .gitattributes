@@ -1,0 +1,12 @@
+# Normalizar a LF todos los archivos de texto (cross-platform)
+* text=auto eol=lf
+
+# Imágenes binarias
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
