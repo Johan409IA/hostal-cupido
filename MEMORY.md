@@ -3,29 +3,30 @@
 Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo que ya no aporte.
 
 ## Estado actual
-- Fase 0 (fundaciones) casi completa: la app arranca en Windows (`pnpm tauri dev`), ventana "Hostal Cúpido" 1280x800 y pantalla de bienvenida con Tailwind.
-- Tooling listo: Tailwind v4 con tokens de `DESIGN.md`, ESLint 10 + Prettier, Vitest con smoke test de App, rustfmt/clippy sin warnings.
-- CI creado (`.github/workflows/ci.yml`): job quality (lint + formato + tests + clippy) y job build (`tauri build --no-bundle`) en windows-latest.
-- Primer run del CI falló en `prettier --check`: `core.autocrlf=true` da CRLF en fresh checkouts de Windows y Prettier exige LF. Corregido con `.gitattributes` (`* text=auto eol=lf`) + renormalize del índice y Node 24 en el workflow; ver run más reciente con `gh run list`.
-- SQLite con `rusqlite` aún sin implementar; la Fase 1 trae el dominio en Rust.
-- Fase 0: arquitectura de capas implementada — `domain/` puro, `repository/` (traits por entidad + `sqlite/` único con SQL), `commands/` finos, `error.rs` (`AppError` → `{code,message}`), `state.rs`/`db.rs` (pool r2d2, WAL+FK). Arquetipo `habitaciones` con tabla bootstrap y tests cargo (4 verdes). No entra aquí: esquema completo, migraciones versionadas y demás repos (véase `docs/architecture.md` y `docs/plans/2026-10-17-arquitectura-capas-backend.md`).
+- Fase 0 completa: app arranca en Windows con `pnpm tauri dev`, CI en verde y base SQLite con migraciones versionadas.
+- Backend por capas: `domain/` puro, `repository/` (traits + `sqlite/` con SQL), `commands/` finos, `migrations.rs`, `db.rs` (pool r2d2, WAL+FK vía `with_init`). Arquetipo `habitaciones` end-to-end; 12 tests cargo + 1 test Vitest en verde.
+- Migraciones: `schema_version` (una fila por migración); v1..v7 crean el esquema base (habitaciones, clientes, estancias, transacciones, cola_limpieza, auditoria + índices mínimos); cada migración aplica SQL + registro de versión en una transacción; base más nueva que la app no arranca; lista no consecutiva tampoco; dev-bases convergen solas (test que pinifica ese escenario).
 
 ## Decisiones (y por qué)
-- `eslint-plugin-import-x` en lugar de `eslint-plugin-import` — el clásico es incompatible con ESLint 10 (APIs de sourceCode eliminadas).
-- Markdown y configs exentos de Prettier en `.prettierignore` — PLAN.md/README se editan a mano y no debe reformatear generados.
+- Migraciones como lista `const` en `migrations::LISTA` en vez de librería externa: sin dependencias nuevas y suficiente para el alcance.
+- Guard "base más nueva" con `AppError::Validacion` en vez de un código de error nuevo: el contrato con el frontend no cambia.
+- Una fila por migración en `schema_version`, con fecha epoch i64 como en `domain::FechaHora`.
+- Índice explícito sobre `clientes.dni` aunque el UNIQUE ya crea autoíndice: lo exigió la tarea y el test de índices lo pina por nombre.
+- `eslint-plugin-import-x` en lugar de `eslint-plugin-import` — el clásico es incompatible con ESLint 10.
+- Markdown y configs exentos de Prettier en `.prettierignore` — PLAN.md/README se editan a mano.
 - Builds de postinstall aprobados vía `allowBuilds` en `pnpm-workspace.yaml` (pnpm ≥11 renombró el setting).
-- CI solo en runners Windows — plataforma objetivo del hostal; evita instalar webkit2gtk para Linux.
-- `tauri build --no-bundle` en CI — empaquetado y firma llegan en Fase 8.
-- Sombra/estados de runner: Node 24 y pnpm leído de `packageManager` (12.14.0).
+- CI solo en runners Windows — plataforma objetivo del hostal; `tauri build --no-bundle` hasta Fase 8.
 
 ## Aprendizajes y errores a evitar
-- En shells cmd de Windows los heredocs de bash fallan (`git commit -F - <<EOF` no sirve): escribir el mensaje en un archivo temporal y usar `git commit -F archivo`.
-- El checkout de CI y los clones en Windows dan CRLF sin `.gitattributes` (`* text=auto eol=lf`); mantenerlo y renormalizar si un archivo nuevo entra con CRLF.
-- Al formatear todo con Prettier revisar `git status`: puede tocar configuraciones y generados ajenos; mantener `.prettierignore` al día.
-- Los tests corren en jsdom sin CSS procesado: no hacer assertions visuales por ahora.
-- Con `cargo clippy -D warnings`, los `pub` items dentro de módulos raíz privados disparan `dead_code` aunque no se usen: los módulos de la lib (`domain`, `repository`, etc.) se declaran `pub` en `lib.rs`.
+- En shells cmd de Windows los heredocs de bash fallan: escribir el mensaje en un archivo temporal y usar `git commit -F archivo`.
+- Checkout/clones en Windows dan CRLF sin `.gitattributes` (`* text=auto eol=lf`); mantenerlo y renormalizar si entra un archivo nuevo con CRLF.
+- Al formatear con Prettier revisar `git status`: puede tocar configs y generados ajenos.
+- Tests corren en jsdom sin CSS procesado: no hacer assertions visuales.
+- Con `cargo clippy -D warnings`, los `pub` items en módulos raíz privados disparan `dead_code`: los módulos de la lib se declaran `pub` en `lib.rs`.
+- Un pool construido a mano en tests NO pasa por `with_init`: para verificar WAL/FK usar `db::crear_pool` con archivo temporal, no un builder manual.
+- Vitest a veces flaquea al spawnear el worker tras una compilación pesada de Cargo (timeout): reintentar antes de investigar.
 
 ## Próximos pasos
-- Verificar que el run del CI tras la corrección CRLF pasa en verde.
-- Tarea de base de datos: esquema completo de las 7 tablas (PLAN §5) y sistema de migraciones versionadas reemplazando el bootstrap de `db.rs`.
-- Fase 1: dominio puro en Rust con tests — cálculo de tarifas, estados de habitación, cola FIFO de limpieza y pila LIFO de transacciones.
+- Fase 1: dominio puro en Rust con tests — cálculo de tarifas, estados de habitación, cola FIFO y pila LIFO.
+- `administrador` y `configuracion` (PLAN §5) llegan en Fase 2 como migraciones v8+.
+- Verificar que el run del CI pasa en verde tras estos cambios.

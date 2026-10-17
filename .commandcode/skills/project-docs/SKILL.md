@@ -1,6 +1,6 @@
 ---
 name: project-docs
-description: Create or update a project's documentation set — README.md, AGENTS.md, MEMORY.md, CHANGELOG.md, docs/architecture.md, docs/plans/, and API docs (OpenAPI + Scalar). Use this whenever the user asks to "document my project", "documenta mi proyecto", "crea/actualiza el AGENTS.md o MEMORY.md", "genera el README", "actualiza el CHANGELOG", "escribe el architecture.md", or mentions keeping agent instructions/memory/plans in sync after finishing work — even if they only name one file, since these docs are interdependent and should be checked together.
+description: Create or update a project's documentation set — README.md, AGENTS.md, MEMORY.md, CHANGELOG.md, DESIGN.md, docs/architecture.md, docs/plans/, and API docs (OpenAPI + Scalar). Use this whenever the user asks to "document my project", "documenta mi proyecto", "crea/actualiza el AGENTS.md o MEMORY.md", "genera el README", "actualiza el CHANGELOG", "crea/actualiza el DESIGN.md", "documenta el diseño visual", "escribe el architecture.md", or mentions keeping agent instructions/memory/plans in sync after finishing work — even if they only name one file, since these docs are interdependent and should be checked together.
 ---
 
 # Project Docs
@@ -17,6 +17,7 @@ mi-proyecto/
 ├── AGENTS.md           # reglas e instrucciones para agentes
 ├── MEMORY.md            # decisiones vigentes y lo descartado
 ├── CHANGELOG.md          # qué cambió entre versiones
+├── DESIGN.md             # sistema de diseño visual (solo si hay UI)
 └── docs/
     ├── architecture.md
     ├── plans/            # planes de los agentes, uno por archivo
@@ -61,6 +62,17 @@ Session-to-session memory: what's true right now, why key decisions were made, w
 ### CHANGELOG.md
 Answers "what changed between versions." Follow the [Keep a Changelog](https://keepachangelog.com) convention (`Added`/`Changed`/`Fixed`/`Removed` under each version, newest on top, with an `Unreleased` section at the top for work in progress). See `references/changelog-template.md`. When updating, add entries under `Unreleased` as work happens, and only cut a new dated version section when the user indicates a release.
 
+### DESIGN.md
+Answers "what does it look like and how should the UI be built" — the visual design system, read by agents that generate UI. It lives at the **project root** (not in `docs/`), next to `AGENTS.md`. It follows the open [Google Stitch DESIGN.md format](https://stitch.withgoogle.com/docs/design-md/overview/) (spec: github.com/google-labs-code/design.md, currently `alpha`). See `references/design-template.md` for the template and an explanation of each block.
+- **Only for projects with a user interface** (web, mobile, desktop). If the project is a pure API/CLI/library with no UI, don't create it and say so in the report.
+- **Two layers**: YAML frontmatter with machine-readable tokens (`colors`, `typography`, `rounded`, `spacing`, `components`) — these are the normative values — plus a markdown body that explains the *why*. Tokens say *what*; prose says *when and why* and refers to tokens by name instead of repeating hex codes.
+- **Section order is fixed**: Overview → Colors → Typography → Layout → Elevation & Depth → Shapes → Components → Do's and Don'ts. Keep these headings in English exactly as written (tools match them by name; the aliases `Brand & Style`, `Layout & Spacing` and `Elevation` are also accepted) and write the prose in the project's language. Sections can be omitted but not reordered, and a duplicated heading is an error. Extra sections (e.g. Iconography & Imagery, Motion, Accessibility) are allowed — always place them after Do's and Don'ts.
+- **Take values from the code, never invent them**: Tailwind config, CSS variables (`:root`, `globals.css`), UI-library theme files, loaded fonts, Figma/DTCG token exports. If the project has a UI but no defined visual identity yet, propose values and flag them in the report as "propuesta, confirmar".
+- If a `DESIGN.md` already exists, read it and update in place — never silently overwrite. Keep tokens in sync with the code when colors, fonts or spacing change.
+- No strict line limit (it's a reference doc like `docs/architecture.md`), but keep each section focused: 3–6 bullets or a short paragraph.
+- **Validate**: if Node is available, run `npx @google/design.md lint DESIGN.md` and fix errors (`broken-ref`) and reasonable warnings (`missing-primary`, `contrast-ratio`, `section-order`); otherwise tell the user the command.
+- If `AGENTS.md` exists and doesn't mention `DESIGN.md`, suggest to the user (don't apply it on your own) adding a one-line pointer so UI agents read it before generating UI — mind the ~30-40 line limit of `AGENTS.md`.
+
 ### docs/architecture.md
 Answers "how is this built" — components, data flow, key design decisions and why, notable constraints. See `references/architecture-template.md`. This is the one doc that can run longer than the others since it's a reference doc, not something re-read every session — but still favor diagrams and short sections over long prose. Use a mermaid diagram for the main component/data-flow view when it helps.
 
@@ -81,6 +93,7 @@ These are **not** a static markdown file — they're served live from the API, t
 - [ ] `MEMORY.md` is ≤ ~50 lines and nothing permanent is stranded there that belongs in `AGENTS.md`
 - [ ] `README.md` commands were verified against actual project config, not assumed
 - [ ] `CHANGELOG.md` follows Keep a Changelog format with an `Unreleased` section
+- [ ] `DESIGN.md` (only if the project has a UI) is at the project root, its tokens match the real code, sections follow the canonical order and `npx @google/design.md lint DESIGN.md` reports no errors
 - [ ] `docs/architecture.md` reflects the current structure, not a stale one
 - [ ] New agent plans are saved under `docs/plans/` with a dated filename
 - [ ] Nothing sensitive (keys, tokens, personal data) was written into any doc
