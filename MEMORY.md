@@ -4,10 +4,15 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 
 ## Estado actual
 - Fase 0 completa: app arranca en Windows con `pnpm tauri dev`, CI en verde y base SQLite con migraciones versionadas.
-- Backend por capas: `domain/` puro, `repository/` (traits + `sqlite/` con SQL), `commands/` finos, `migrations.rs`, `db.rs` (pool r2d2, WAL+FK vía `with_init`). Arquetipo `habitaciones` end-to-end; 12 tests cargo + 1 test Vitest en verde.
-- Migraciones: `schema_version` (una fila por migración); v1..v7 crean el esquema base (habitaciones, clientes, estancias, transacciones, cola_limpieza, auditoria + índices mínimos); cada migración aplica SQL + registro de versión en una transacción; base más nueva que la app no arranca; lista no consecutiva tampoco; dev-bases convergen solas (test que pinifica ese escenario).
+- Backend por capas: `domain/` puro, `repository/` (traits + `sqlite/` con SQL), `commands/` finos, `migrations.rs`, `db.rs` (pool r2d2, WAL+FK vía `with_init`). Arquetipo `habitaciones` end-to-end.
+- Fase 1 en curso en `feature/estructura-de-datos`: entidades del dominio declaradas (solo structs/enums, aún sin reglas) y ya implementadas la pila LIFO de transacciones (`domain/transaccion.rs::PilaTransaccionesRecientes` con `apilar`/`ver_ultima`/`deshacer(motivo)`), el ABB de clientes (`domain/cliente.rs::ArbolClientes`, indexado por DNI con in-order y ordenamientos derivados por apellidos y antigüedad) y la cola FIFO de limpieza (`domain/limpieza.rs::ColaLimpieza` con `VecDeque`) — 29 tests cargo + 1 Vitest en verde.
+- Migraciones: `schema_version` (una fila por migración); v1..v7 crean el esquema base; cada migración aplica SQL + registro de versión en una transacción; base más nueva que la app no arranca; dev-bases convergen solas.
 
 ## Decisiones (y por qué)
+- Cola FIFO con `VecDeque` en dominio: `encolar` rechaza la habitación que ya tiene limpieza pendiente (`HabitacionYaEnCola`, protege la regla "a lo sumo una entrada por habitación") y `desde_entradas` reordena por `fecha_encolado` al reconstruir desde la tabla `cola_limpieza`; la persistencia de la marca `fecha_atencion` que devuelve `atender_siguiente` queda para la capa repositorio (Fase 6).
+- Pila LIFO pura en dominio: `deshacer(motivo)` devuelve la transacción ya marcada `Anulada` (con su motivo) y el borrado físico nunca existe — el repositorio que persiste esa marca llega en Fase 6, siguiendo el trait `TransaccionRepository::anular(id, motivo)`.
+- ABB de clientes como ABB simple (sin autobalanceo): la reconstrucción al arrancar y el alta de cada cliente insertan en el árbol, y `insertar` falla con `DniDuplicado` si la clave ya existe; por rendimiento, la carga inicial desde la base debe intercalar el orden de los DNI (apunta el doc del módulo).
+- Ordenamientos derivados (`listar_por_apellidos`, `listar_por_antiguedad`) salen de la in-order más `sort_by` con desempates por nombres/DNI y fecha/DNI: sin dependencias de colación Unicode para el español.
 - Migraciones como lista `const` en `migrations::LISTA` en vez de librería externa: sin dependencias nuevas y suficiente para el alcance.
 - Guard "base más nueva" con `AppError::Validacion` en vez de un código de error nuevo: el contrato con el frontend no cambia.
 - Una fila por migración en `schema_version`, con fecha epoch i64 como en `domain::FechaHora`.

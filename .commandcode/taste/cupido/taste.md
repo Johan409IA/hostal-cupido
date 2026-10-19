@@ -20,4 +20,8 @@
 - Prefers the agent to surface questions/doubts before proceeding when task requirements are ambiguous. Confidence: 0.8
 - Uses a `project-docs` skill/command to keep project documentation (AGENTS.md, MEMORY.md, README.md) current with the project's actual state. Confidence: 0.7
 - Prefers commit messages written in Spanish, as a single simple sentence, directly related to the task performed. Confidence: 0.8
+- Prefers to make the git commits himself; expects the agent to leave the working tree uncommitted (and ask before committing) after implementing a task. Confidence: 0.6
+- Names domain types and methods in Spanish (e.g. `PilaTransaccionesRecientes` with `apilar`/`ver_ultima`/`deshacer`), mirroring the language of the task spec — Spanish naming applies to the domain/API surface, not just to prose. Confidence: 0.6
+- States test requirements explicitly as part of a task's acceptance criteria (e.g. "con tests del orden LIFO y del caso de pila vacía"), expecting happy-path order plus edge cases (empty/underflow, configurable limits) to be covered. Confidence: 0.6
 - Prefers a clean layered backend architecture in Rust: pure domain layer (no Tauri/SQLite deps), repository layer as the only place with SQL, thin IPC commands, and a unified serializable error type. Confidence: 0.7
+- Writes task specs that prescribe exact implementation details — the concrete data structure to use (e.g. `VecDeque`), the exact set of operations/method names, persistence expectations, and behavior rules — and expects the implementation to follow them closely. Confidence: 0.6
